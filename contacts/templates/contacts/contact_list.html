@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Contacts</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{font-family:system-ui,sans-serif;margin:24px}
+    table{border-collapse:collapse;width:100%;margin-top:12px}
+    th,td{border:1px solid #ddd;padding:8px;text-align:left}
+    th{background:#f4f4f4}
+    .actions{margin-top:12px}
+    a.button{display:inline-block;padding:6px 10px;background:#007bff;color:white;text-decoration:none;border-radius:4px}
+    button.button{padding:6px 10px;background:#007bff;color:white;border:none;border-radius:4px;cursor:pointer}
+    button.button.danger{background:#d9534f}
+    .small{font-size:0.9rem;padding:4px 8px}
+    .muted{color:#666;font-size:0.9rem}
+  </style>
+</head>
+<body>
+  <h1>Contacts</h1>
+
+  <div class="actions">
+    <a class="button" href="{% url 'contact_create' %}">Create contact</a>
+    <a style="margin-left:8px" href="{% url 'group_list' %}">Groups</a>
+  </div>
+
+  {% if contacts %}
+    <table>
+      <thead>
+        <tr>
+          <th>Full name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Groups</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for contact in contacts %}
+        <tr>
+          <td>{{ contact.full_name }}</td>
+          <td><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></td>
+          <td>{{ contact.phone|default_if_none:"" }}</td>
+          <td>
+            {% if contact.groups.all %}
+              {% for g in contact.groups.all %}
+                {{ g.name }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </td>
+          <td>{{ contact.created_at|date:"Y-m-d H:i" }}</td>
+          <td>
+            <a class="button small" href="{% url 'contact_update' contact.id %}">Edit</a>
+
+            <form method="post" action="{% url 'contact_delete' contact.id %}" style="display:inline;margin-left:6px" onsubmit='return confirm("Delete contact {{ contact.full_name|escapejs }}? This cannot be undone.");'>
+              {% csrf_token %}
+              <button type="submit" class="button danger small">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No contacts yet. <a href="{% url 'contact_create' %}">Create one</a>.</p>
+  {% endif %}
+</body>
+</html>
