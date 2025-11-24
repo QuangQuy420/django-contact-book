@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Edit Contact</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{font-family:system-ui,sans-serif;margin:24px}
+    form{max-width:640px}
+    label{display:block;margin-top:12px;font-weight:600}
+    input[type="text"], input[type="email"], select{width:100%;padding:8px;margin-top:6px;border:1px solid #ccc;border-radius:4px}
+    .error{color:#a00;margin-top:8px}
+    .actions{margin-top:12px}
+    button{padding:8px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;cursor:pointer}
+    a{margin-left:8px}
+  </style>
+</head>
+<body>
+  <h1>Edit Contact</h1>
+
+  {% if error %}
+    <div class="error">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <label for="id_full_name">Full name</label>
+    <input id="id_full_name" name="full_name" type="text" maxlength="150" required value="{{ request.POST.full_name|default:contact.full_name }}">
+
+    <label for="id_email">Email</label>
+    <input id="id_email" name="email" type="email" maxlength="254" required value="{{ request.POST.email|default:contact.email }}">
+
+    <label for="id_phone">Phone</label>
+    <input id="id_phone" name="phone" type="text" maxlength="20" value="{{ request.POST.phone|default:contact.phone }}">
+
+    <label for="id_group">Group (optional)</label>
+    <select id="id_group" name="group_id">
+      <option value="">— none —</option>
+      {% for group in groups %}
+        <option value="{{ group.id }}"
+          {% if request.POST.group_id %}
+            {% if request.POST.group_id == group.id|stringformat:"s" %}selected{% endif %}
+          {% else %}
+            {% if contact.groups.all|length and group in contact.groups.all %}selected{% endif %}
+          {% endif %}
+        >{{ group.name }}</option>
+      {% endfor %}
+    </select>
+
+    <div class="actions">
+      <button type="submit">Save</button>
+      <a href="{% url 'contact_list' %}">Cancel</a>
+    </div>
+  </form>
+</body>
+</html>

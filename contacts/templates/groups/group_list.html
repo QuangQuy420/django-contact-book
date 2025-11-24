@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Groups</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{font-family:system-ui,sans-serif;margin:24px}
+    table{border-collapse:collapse;width:100%;margin-top:12px}
+    th,td{border:1px solid #ddd;padding:8px;text-align:left}
+    th{background:#f4f4f4}
+    .actions{margin-top:12px}
+    a.button{display:inline-block;padding:6px 10px;background:#007bff;color:white;text-decoration:none;border-radius:4px}
+    button.button{padding:6px 10px;background:#007bff;color:white;border:none;border-radius:4px;cursor:pointer}
+    button.button.danger{background:#d9534f}
+    .small{font-size:0.9rem;padding:4px 8px}
+  </style>
+</head>
+<body>
+  <h1>Groups</h1>
+
+  <div class="actions">
+    <a class="button" href="{% url 'group_create' %}">Create new group</a>
+    <a style="margin-left:8px" href="{% url 'contact_list' %}">Back to contacts</a>
+  </div>
+
+  {% if groups %}
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Contacts</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for group in groups %}
+      <tr>
+        <td>{{ group.name }}</td>
+        <td>{{ group.description|default_if_none:"" }}</td>
+        <td>{{ group.contacts.count }}</td>
+        <td>
+          <a class="button small" href="{% url 'group_update' group.id %}">Edit</a>
+
+          <form method="post" action="{% url 'group_delete' group.id %}" style="display:inline;margin-left:6px" onsubmit='return confirm("Delete group {{ group.name|escapejs }}? This cannot be undone.");'>
+            {% csrf_token %}
+            <button type="submit" class="button danger small">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p>No groups yet. <a href="{% url 'group_create' %}">Create one</a>.</p>
+  {% endif %}
+</body>
+</html>
