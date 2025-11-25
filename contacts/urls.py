@@ -7,6 +7,7 @@ urlpatterns = [
     path("contacts/create/", views.contact_create, name="contact_create"),
     path("contacts/<int:contact_id>/edit/", views.contact_update, name="contact_update"),
     path("contacts/<int:contact_id>/delete/", views.contact_delete, name="contact_delete"),
+    path("contacts/delete-multiple/", views.contact_delete_multiple, name="contact_delete_multiple"),
 
     # Groups routes
     path("groups/", views.group_list, name="group_list"),

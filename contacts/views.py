@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
 from .models import Contact, Group
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed
 
 
 # Contacts
@@ -88,10 +88,26 @@ def contact_update(request, contact_id):
 
 def contact_delete(request, contact_id):
     if request.method != "POST":
-        return HttpResponse(status=405)
+        return HttpResponseNotAllowed(["POST"])
 
-    contact = get_object_or_404(Contact, id=contact_id)
-    contact.delete()
+    with transaction.atomic():
+        contact = get_object_or_404(Contact, id=contact_id)
+        contact.delete()
+
+    return redirect("contact_list")
+
+
+def contact_delete_multiple(request):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
+    ids = request.POST.getlist("contact_ids")
+    if not ids:
+        return redirect("contact_list")
+
+    with transaction.atomic():
+        Contact.objects.filter(id__in=ids).delete()
+
     return redirect("contact_list")
 
 
@@ -148,40 +164,10 @@ def group_update(request, group_id):
 
 def group_delete(request, group_id):
     if request.method != "POST":
-        return HttpResponse(status=405)  # Method not allowed
+        return HttpResponseNotAllowed(["POST"])
 
-    group = get_object_or_404(Group, id=group_id)
-    group.delete()
+    with transaction.atomic():
+        group = get_object_or_404(Group, id=group_id)
+        group.delete()
+
     return redirect("group_list")
-
-
-# def batch_deactivate_contacts(request):
-#     """
-#     Example: batch mark contacts as inactive atomically.
-#     If error occurs in middle → rollback all changes.
-#     """
-#     with transaction.atomic():
-#         sid = transaction.savepoint()
-
-#         try:
-#             # For demo: get first group
-#             group = Group.objects.first()
-#             if not group:
-#                 return HttpResponse("No group found")
-
-#             contacts = Contact.objects.filter(groups=group)
-
-#             for c in contacts:
-#                 c.phone = ""  # mock update
-#                 c.save()
-
-#             # simulate an error
-#             # raise ValueError("Something went wrong!")
-
-#             transaction.savepoint_commit(sid)
-
-#         except Exception as exc:
-#             transaction.savepoint_rollback(sid)
-#             return HttpResponse(f"Rolled back due to error: {exc}")
-
-#     return HttpResponse("Batch update completed successfully")

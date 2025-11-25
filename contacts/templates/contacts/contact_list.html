@@ -26,45 +26,62 @@
   </div>
 
   {% if contacts %}
-    <table>
-      <thead>
-        <tr>
-          <th>Full name</th>
-          <th>Email</th>
-          <th>Phone</th>
-          <th>Groups</th>
-          <th>Created</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for contact in contacts %}
-        <tr>
-          <td>{{ contact.full_name }}</td>
-          <td><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></td>
-          <td>{{ contact.phone|default_if_none:"" }}</td>
-          <td>
-            {% if contact.groups.all %}
-              {% for g in contact.groups.all %}
-                {{ g.name }}{% if not forloop.last %}, {% endif %}
-              {% endfor %}
-            {% else %}
-              <span class="muted">—</span>
-            {% endif %}
-          </td>
-          <td>{{ contact.created_at|date:"Y-m-d H:i" }}</td>
-          <td>
-            <a class="button small" href="{% url 'contact_update' contact.id %}">Edit</a>
+    <form method="post" action="{% url 'contact_delete_multiple' %}" id="bulk-delete-form" onsubmit='return confirm("Delete selected contacts? This cannot be undone.");'>
+      {% csrf_token %}
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px"><input type="checkbox" id="select-all" title="Select all"></th>
+            <th>Full name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Groups</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for contact in contacts %}
+          <tr>
+            <td><input type="checkbox" name="contact_ids" value="{{ contact.id }}"></td>
+            <td>{{ contact.full_name }}</td>
+            <td><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></td>
+            <td>{{ contact.phone|default_if_none:"" }}</td>
+            <td>
+              {% if contact.groups.all %}
+                {% for g in contact.groups.all %}
+                  {{ g.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
+            </td>
+            <td>{{ contact.created_at|date:"Y-m-d H:i" }}</td>
+            <td>
+              <a class="button small" href="{% url 'contact_update' contact.id %}">Edit</a>
 
-            <form method="post" action="{% url 'contact_delete' contact.id %}" style="display:inline;margin-left:6px" onsubmit='return confirm("Delete contact {{ contact.full_name|escapejs }}? This cannot be undone.");'>
-              {% csrf_token %}
-              <button type="submit" class="button danger small">Delete</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+              <form method="post" action="{% url 'contact_delete' contact.id %}" style="display:inline;margin-left:6px" onsubmit='return confirm("Delete contact {{ contact.full_name|escapejs }}? This cannot be undone.");'>
+                {% csrf_token %}
+                <button type="submit" class="button danger small">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div style="margin-top:12px">
+        <button type="submit" class="button danger">Delete selected</button>
+      </div>
+    </form>
+
+    <script>
+      document.getElementById('select-all').addEventListener('change', function(e){
+        var checked = e.target.checked;
+        document.querySelectorAll('input[name="contact_ids"]').forEach(function(cb){ cb.checked = checked; });
+      });
+    </script>
+
   {% else %}
     <p>No contacts yet. <a href="{% url 'contact_create' %}">Create one</a>.</p>
   {% endif %}
